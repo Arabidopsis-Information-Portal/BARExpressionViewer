@@ -23,7 +23,7 @@
 
       query = {
         agi: $('#gene_expression_viewer_gene').val(),
-        datasource: 'Developmental_Map'
+        datasource: $('#gene_expression_viewer_datasource').val()
       };
 
       if (query.agi.length > 0) {
@@ -54,7 +54,10 @@
 
 
     // initial value
-    var init = $('#gene_expression_viewer_gene').data('initial-value');
-    $('#gene_expression_viewer_gene').val(init);
+    var initgene = $('#gene_expression_viewer_gene').data('initial-value');
+    $('#gene_expression_viewer_gene').val(initgene);
+
+    var initds = $('#gene_expression_viewer_datasource').data('initial-value');
+    $('#gene_expression_viewer_datasource').val(initds).prop('selected', true);
   });
 })(window, jQuery);
