@@ -3,11 +3,11 @@
 
   console.log('Hello, BARExpressionViewer!');
 
-  var appContext = $('[data-app-name="barexpressionviewer"]');
+  //var appContext = $('[data-app-name="barexpressionviewer"]');
 
   /* Generate Agave API docs */
   window.addEventListener('Agave::ready', function() {
-    var Agave = window.Agave;
+    //var Agave = window.Agave;
 
     var context, formName, api;
 
