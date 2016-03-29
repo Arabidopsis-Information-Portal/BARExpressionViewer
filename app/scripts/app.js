@@ -1,63 +1,83 @@
+/* jshint camelcase: false */
 (function(window, $, undefined) {
-  'use strict';
+    'use strict';
 
-  console.log('Hello, BARExpressionViewer!');
+    console.log('Hello, BARExpressionViewer!');
+    var appContext = $('[data-app-name="barexpressionviewer"]');
+    var base_url = 'https://api.araport.org/community/v0.3/aip/efp_by_locus_v0.2.0/search';
 
-  //var appContext = $('[data-app-name="barexpressionviewer"]');
+    window.addEventListener('Agave::ready', function() {
+        var Agave = window.Agave;
 
-  /* Generate Agave API docs */
-  window.addEventListener('Agave::ready', function() {
-    //var Agave = window.Agave;
+        var is_valid_agi_identifier = function is_valid_agi_identifier(id) {
+            var pattern = /AT[1-5MC]G[0-9]{5,5}/i;
+            return id.match(pattern) ? true : false;
+        };
 
-    var context, formName, api;
+        var errorMessage = function errorMessage(message) {
+            return '<div class="alert alert-danger fade in" role="alert">' +
+                   '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                   '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' +
+                   message + '</div>';
+        };
 
-    context = $('.gene_expression_viewer');
+        var showImage = function showImage(obj) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                $('.gene_expression_viewer_progress', appContext).addClass('hidden');
+                var img = new Image();
+                img.src = reader.result;
+                $('.gene_expression_viewer_result', appContext).html(img);
+            };
+            reader.readAsDataURL(new Blob([obj], {type: 'image/png'}));
+        };
 
-    formName = 'gene_expression_viewer_form';
-    api = 'https://api.araport.org/data/BioAnalyticResource/efp_service/pr2-0.1/?request=';
+        $('#gene_expression_viewer_form', appContext).on('submit', function(e) {
+            e.preventDefault();
 
-    $('form[name='+formName+']').on('submit', function(e) {
-      e.preventDefault();
+            var query = {
+                locus: $('#gene_expression_viewer_gene', appContext).val(),
+                source: $('#gene_expression_viewer_datasource', appContext).val()
+            };
 
-      var imgUrl, imgEl, query;
+            if (! is_valid_agi_identifier(query.locus)) {
+                $('.gene_expression_viewer_messages', appContext).html(errorMessage('Please enter a valid AGI identifier!'));
+                return;
+            }
 
-      query = {
-        agi: $('#gene_expression_viewer_gene').val(),
-        datasource: $('#gene_expression_viewer_datasource').val()
-      };
+            // start progress bar
+            $('.gene_expression_viewer_messages', appContext).empty();
+            $('.gene_expression_viewer_progress', appContext).removeClass('hidden');
 
-      if (query.agi.length > 0) {
-        imgUrl = api + JSON.stringify(query);
-
-        imgEl = $('<img>').attr('src', imgUrl).width('100%');
-
-        $('.gene_expression_viewer_messages').empty();
-        $('.gene_expression_viewer_progress').removeClass('hidden');
-
-        imgEl.on('load', function() {
-          $('.gene_expression_viewer_progress').addClass('hidden');
+            if (query.locus.length > 0) {
+                // Had to drop down to XMLHttpRequest for binary data... Yuck!
+                var req_url = base_url + '?locus=' + query.locus + '&source=' + query.source;
+                var request = new XMLHttpRequest();
+                request.open('GET', req_url, true);
+                request.setRequestHeader('Authorization', 'Bearer ' + Agave.token.accessToken);
+                request.responseType = 'blob';
+                request.onload = function () {
+                    if (this.status === 200) {
+                        var blob = request.response;
+                        showImage(blob);
+                    } else {
+                        var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
+                        $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
+                        console.error(msg);
+                    }
+                };
+                request.onerror = function (e) {
+                    var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
+                    $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
+                    console.error('Error query for \'' + query.locus + '\' at BAR --> Status: ' + e.status + ' (' + e.statusText + ') Response: ' + e.responseText);
+                };
+                request.send();
+            } else {
+                window.alert('You must enter a gene first.');
+            }
+        }).on('reset', function() {
+            $('.gene_expression_viewer_result', appContext).empty();
+            $('.gene_expression_viewer_messages', appContext).empty();
         });
-
-        imgEl.on('error', function() {
-          $('.gene_expression_viewer_progress').addClass('hidden');
-          $('.gene_expression_viewer_messages').html('<p class="alert alert-danger">There was an error loading the image for <em>'+ query.agi +'</em>.</p>');
-        });
-
-        $('.gene_expression_viewer_result').html(imgEl);
-      } else {
-        window.alert('You must enter a gene first.');
-      }
-    }).on('reset', function() {
-      $('.gene_expression_viewer_result').empty();
-      $('.gene_expression_viewer_messages').empty();
     });
-
-
-    // initial value
-    var initgene = $('#gene_expression_viewer_gene').data('initial-value');
-    $('#gene_expression_viewer_gene').val(initgene);
-
-    var initds = $('#gene_expression_viewer_datasource').data('initial-value');
-    $('#gene_expression_viewer_datasource').val(initds).prop('selected', true);
-  });
 })(window, jQuery);
