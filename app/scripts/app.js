@@ -29,6 +29,12 @@
                 img.src = reader.result;
                 $('.gene_expression_viewer_result', appContext).html(img);
             };
+            reader.onerror = function() {
+                $('.gene_expression_viewer_progress', appContext).addClass('hidden');
+                var msg = 'Problem reading image data from BAR. Please try again.';
+                $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
+                console.error(msg);
+            };
             reader.readAsDataURL(new Blob([obj], {type: 'image/png'}));
         };
 
@@ -57,21 +63,22 @@
                 request.setRequestHeader('Authorization', 'Bearer ' + Agave.token.accessToken);
                 request.responseType = 'blob';
                 request.onload = function () {
-                    if (this.status === 200) {
+                    if (this.status === 200 && this.response.type === 'image/png') {
                         var blob = request.response;
                         showImage(blob);
                     } else {
                         $('.gene_expression_viewer_progress', appContext).addClass('hidden');
-                        var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
+                        var msg = 'Problem getting proper response for \'' + query.locus + '\' at BAR. Please try again.';
                         $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
                         console.error(msg);
+                        console.error(this);
                     }
                 };
                 request.onerror = function (e) {
                     $('.gene_expression_viewer_progress', appContext).addClass('hidden');
                     var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
                     $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
-                    console.error('Error query for \'' + query.locus + '\' at BAR --> Status: ' + e.status + ' (' + e.statusText + ') Response: ' + e.responseText);
+                    console.error('Network error in query for \'' + query.locus + '\' at BAR --> ' + e);
                 };
                 request.send();
             } else {
