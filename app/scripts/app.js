@@ -61,12 +61,14 @@
                         var blob = request.response;
                         showImage(blob);
                     } else {
+                        $('.gene_expression_viewer_progress', appContext).addClass('hidden');
                         var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
                         $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
                         console.error(msg);
                     }
                 };
                 request.onerror = function (e) {
+                    $('.gene_expression_viewer_progress', appContext).addClass('hidden');
                     var msg = 'Problem querying for \'' + query.locus + '\' at BAR. Please try again.';
                     $('.gene_expression_viewer_messages', appContext).html(errorMessage(msg));
                     console.error('Error query for \'' + query.locus + '\' at BAR --> Status: ' + e.status + ' (' + e.statusText + ') Response: ' + e.responseText);
