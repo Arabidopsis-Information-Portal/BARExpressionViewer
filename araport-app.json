@@ -1,12 +1,16 @@
 {
-  "icon": "",
-  "name": "barexpressionviewer",
-  "description": "View expression as Electronic Fluorescent Pictograph (eFP)",
+  "namespace" : "barexpressionviewer",
+  "name": "BAR Expression Viewer",
+  "description": "Display expression as an Electronic Fluorescent Pictograph (eFP) from The Bio-Analytic Resource for Plant Biology (BAR).",
   "html": "app.html",
   "scripts": [
     "scripts/app.js"
   ],
   "styles": [
     "styles/app.css"
-  ]
+  ],
+  "tags": [
+    "arabidopsis", "expression", "fluorescence"
+  ],
+  "icon": "app/images/logo.png"
 }

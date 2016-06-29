@@ -169,7 +169,7 @@ module.exports = function(grunt) {
 
     inline: {
       dist: {
-        src: ['app/main.html'],
+        src: ['app/app.html'],
         dest: [ 'dist/' ],
         options:{
           cssmin: true,
